@@ -1,0 +1,50 @@
+developer=https://cleverdevil.io/
+url=https://github.com/cleverdevil/together/
+maintainer=http://indiecomputing.com/
+pkgname=$(basename $(pwd))
+pkgver=0.1
+pkgrel=1
+_commit=a74e5f94208c9d5ce48e2c8e7f6cde2c61886c48
+pkgdesc="The together project: an IndieWeb experience "
+arch=('any')
+license=("custom:${pkgname}")
+source=("git+https://github.com/cleverdevil/together#commit=${_commit}")
+releasepage=('https://github.com/cleverdevil/together/commits/master')
+depends=(
+    'nodejs'
+)
+options=('!strip')
+sha512sums=('SKIP')
+
+build() {
+    cd ${srcdir}/together
+    npm install
+    npm run build
+
+    # npm puts those _where fields everywhere in to package.json, and makepkg does not
+    # like those absolute paths in there. We don't either. So let's take them out:
+    find . -name package.json -exec perl -pi -e 's,^\s*"_where".*$,,g' {} \;
+    find . -name package.json -exec perl -pi -e "s,$(pwd),/ubos/share/${pkgname},g" {} \;
+}
+
+package() {
+# Manifest
+   install -D -m0644 ${startdir}/ubos-manifest.json ${pkgdir}/ubos/lib/ubos/manifests/${pkgname}.json
+
+# Icons
+#    install -D -m0644 ${startdir}/appicons/{72x72,144x144}.png -t ${pkgdir}/ubos/http/_appicons/${pkgname}/
+
+# Templates
+    install -D -m0644 ${startdir}/tmpl/*.tmpl -t ${pkgdir}/ubos/share/${pkgname}/tmpl
+
+# Data
+    mkdir -p ${pkgdir}/ubos/lib/${pkgname}
+
+# Code
+    cp -r -p ${srcdir}/together/build        ${pkgdir}/ubos/share/${pkgname}/
+    cp -r -p ${srcdir}/together/node_modules ${pkgdir}/ubos/share/${pkgname}/
+    cp -r -p ${srcdir}/together/server       ${pkgdir}/ubos/share/${pkgname}/
+
+# License
+#    install -D -m644 ${srcdir}/river5/LICENSE -t ${pkgdir}/usr/share/licenses/${pkgname}/
+}

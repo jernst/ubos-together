@@ -1,0 +1,16 @@
+[Unit]
+Description=Together ${appconfig.appconfigid}
+
+[Service]
+
+ExecStartPre=/usr/share/ubos-admin/bin/ubos-service-prestart together@${appconfig.appconfigid}
+ExecStopPost=/usr/share/ubos-admin/bin/ubos-service-poststop together@${appconfig.appconfigid}
+
+WorkingDirectory=${appconfig.datadir}
+ExecStart=/usr/bin/node server --port ${appconfig.tcpport.main}
+User=http
+Group=http
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
